@@ -46,6 +46,12 @@ def rename4(dir):
             else:
                 print '\trenaming %s to %s' % (f, newfilename)
                 rename(join(dir, f), join(dir, newfilename))
+def grep1(dir):
+    for f in listdir(dir):
+        r1 = match('([A-Z]+)-(\d+)-(\d{4})(-([A-Z]+))?.html', f)
+        r2 = match('PBI-(\d+)-(\d+)-(\d{4})(-([A-Z]+))?.html', f)
+        if (not r1 and not r2):
+            print f
 
 def rename4(dir):
     for f in listdir(dir):
@@ -61,5 +67,21 @@ def rename4(dir):
                     print 'renaming %s to %s' % (f, newfilename)
                     rename(join(dir, f), join(dir, newfilename))
 
+def rename5(dir):
+    for f in listdir(dir):
+        r1 = match('([A-Z]+)-(\d+)-(\d{4})(-([A-Z]+))?.html', f)
+        r2 = match('PBI-(\d+)-(\d+)-(\d{4})(-([A-Z]+))?.html', f)
+        if (not r1 and not r2):
+            r3 = match('pbi(\d+)-(\d+)-(\d{4})([A-Za-z]+).html', f)
+            if (r3):
+                newfilename = 'PBI-' + r3.group(1) + '-' + r3.group(2) + '-' + r3.group(3) + '.html'
+                print 'renaming %s to %s' % (f, newfilename)
+                if (isfile(join(dir, newfilename))):
+                    newfilename = 'PBI-' + r3.group(1) + '-' + r3.group(2) + '-' + r3.group(3) + '-' + r3.group(4).upper() + '.html'
+                    print '\tfile %s exists' % newfilename
+                else:
+                    print '\trenaming %s to %s' % (f, newfilename)
+                rename(join(dir, f), join(dir, newfilename))
+
 if __name__ == '__main__':
-    rename4('build')
+    rename5('build')

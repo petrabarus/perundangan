@@ -47,3 +47,4 @@ $for f in `find build/ -type f`; do   echo $f;   tidy -i -f tmp/$f -o $f $f; don
 - Tidying the HTML content
 - NOTE: There are several instance where the file name doesn't reflect the real document number. For example, when I do a diff between file ps8-2012bt.html and ps8-2012.html I found that the real document number for the latter is 16-2013. There is still no clear insight from the documents about what the 'bt' means. 
 - NOTE: The documents that have suffix 'pjl', e.g. `pp42-2013pjl.html`, are documents that contain explanation about the counterpart.
+- NOTE: PBI documents has three numbering parts, instead of two like others.
