@@ -83,5 +83,16 @@ def rename5(dir):
                     print '\trenaming %s to %s' % (f, newfilename)
                 rename(join(dir, f), join(dir, newfilename))
 
+def rename6(dir):
+    for f in listdir(dir):
+        r = match('Peraturan-Presiden-(\d+)-(\d{4}).html', f)
+        if (r):
+            newfilename = 'PERPRES-' + r.group(1) + '-' + r.group(2) + '.html'
+            if (isfile(join(dir, newfilename))):
+                print 'file %s exists' % newfilename
+            else:
+                print 'renaming %s to %s' % (f, newfilename)
+                rename(join(dir, f), join(dir, newfilename))
+
 if __name__ == '__main__':
-    rename5('build')
+    grep1('build')
