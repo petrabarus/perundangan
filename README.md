@@ -34,7 +34,14 @@ $./clean_html.python tmp/renderoutput tmp/cleaned
 $#So far
 $cp tmp/cleaned build
 
+$#Restructuring the HTML to make it easier to diff
+$for f in `find build/ -type f`; do   echo $f;   tidy -i -f tmp/$f -o $f $f; done
+
 ```
 
 ##Changelog
-2014.02.27 Started the project
+2014.02.27 
+- Started the project
+2014.03.01 
+- Renaming the files to a more uniform structure
+- Tidying the HTML content
