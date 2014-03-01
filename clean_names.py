@@ -47,5 +47,19 @@ def rename4(dir):
                 print '\trenaming %s to %s' % (f, newfilename)
                 rename(join(dir, f), join(dir, newfilename))
 
+def rename4(dir):
+    for f in listdir(dir):
+        r1 = match('([A-Z]+)-(\d+)-(\d{4})(-([A-Z]+))?.html', f)
+        r2 = match('PBI-(\d+)-(\d+)-(\d{4})(-([A-Z]+))?.html', f)
+        if (not r1 and not r2):
+            r3 = match('pbi(\d+)-(\d+)-(\d{4}).html', f)
+            if (r3):
+                newfilename = 'PBI-' + r3.group(1) + '-' + r3.group(2) + '-' + r3.group(3) + '.html'
+                if (isfile(join(dir, newfilename))):
+                    print 'file %s exists' % newfilename
+                else:
+                    print 'renaming %s to %s' % (f, newfilename)
+                    rename(join(dir, f), join(dir, newfilename))
+
 if __name__ == '__main__':
     rename4('build')
