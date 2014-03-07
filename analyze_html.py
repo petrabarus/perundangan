@@ -62,11 +62,18 @@ def clean5(filename, content):
         print filename
     return new_content
 
+def clean6(filename, content):
+    text = '&Acirc;&nbsp;'
+    if (text in content):
+        print filename
+        content = content.replace(text, ' ')
+    return content
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean5(filename, content)
+    new_content = clean6(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
