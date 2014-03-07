@@ -5,6 +5,7 @@ from re import match
 from sys import argv
 from lxml import html, etree
 
+
 def clean1(filename, content):
     test = """
     <table align="left" border="0" cellspacing="0">
@@ -27,25 +28,32 @@ def clean1(filename, content):
         #print content
     return content
         
+clean2regex = re.compile("<div class=\"d3\">\s+<small>\(c\)2010 Ditjen PP :: \|\| \|\|</small>\s+</div>")
 def clean2(filename, content):
     test = """
     <div class="d3">
       <small>(c)2010 Ditjen PP :: || ||</small>
     </div>
 """
-    if (test in content):
+    new_content = clean2regex.sub("", content)
+    if (new_content != content):
         print filename
-        content = content.replace(test, '')
-    return content
+    return new_content
+
+def processfile(filename):
+    fi = open(filename, "rb")
+    content = fi.read()
+    fi.close()
+    new_content = clean14(filename, content)
+    fo = open(filename, "w")
+    fo.write(new_content)
+    fo.close()
 
 if __name__ == '__main__':
     if len(argv) > 1:
-        for f in listdir(argv[1]):
-            filename = join(argv[1], f) 
-            fi = open(filename, "rb")
-            content = fi.read()
-            fi.close()
-            new_content = clean1(filename, content)
-            fo = open(filename, "w")
-            fo.write(new_content)
-            fo.close()
+        if (isfile(argv[1])):
+            processfile(argv[1])
+        elif (isdir(argv[1])):
+            for f in listdir(argv[1]):
+                filename = join(argv[1], f) 
+                processfile(filename)
