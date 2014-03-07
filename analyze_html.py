@@ -54,11 +54,19 @@ def clean4(filename, content):
         print filename
     return new_content
 
+#Removing unused image
+clean5regex = re.compile("<img src=\"([a-zA-Z\./]+)\" border=\"0\">(\s+)?(<br>)?(\s+)?(<br>)?")
+def clean5(filename, content):
+    new_content = clean5regex.sub("", content)
+    if (new_content != content):
+        print filename
+    return new_content
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean4(filename, content)
+    new_content = clean5(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
