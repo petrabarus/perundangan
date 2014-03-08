@@ -129,11 +129,38 @@ def clean9(filename, content):
     content = clean9regex1.sub('</center><h4>Pasal \g<1></h4>', content)
     return content
 
+#Grab all center that have 1 <br> and then convert it to <h2> with class
+clean10regex1 = re.compile('^Bagian');
+clean10regex2 = re.compile('^BAB');
+def clean10(filename, content):
+    html_content = html.fromstring(content)
+    center_parts = html_content.xpath('//center')
+    for part in center_parts:
+        child = part.getchildren()
+        if (len(child) == 1 and child[0].tag == 'br' and
+            part.text and part.text.strip() and child[0].tail and child[0].tail.strip()):
+            text = part.text.strip() + ': ' + child[0].tail.strip()
+            if (clean10regex1.match(text)):
+                element = html.Element('h2', {'class': 'bagian'})
+                element.text = text
+                part.addprevious(element)
+                part.drop_tree()
+            elif (clean10regex2.match(text)):
+                element = html.Element('h2', {'class': 'bab'})
+                element.text = text
+                part.addprevious(element)
+                part.drop_tree()
+            new_content = etree.tostring(html_content)
+            if (new_content != content):
+                print filename
+                content = new_content
+    return content    
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean9(filename, content)
+    new_content = clean10(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
