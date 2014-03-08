@@ -307,11 +307,44 @@ def clean16(filename, content):
         print filename
     return etree.tostring(html_content)
 
+
+clean17regex1 = re.compile('^(\d+)\.')
+clean17regex2 = re.compile('^([a-z])\.')
+def clean17(filename, content):
+    html_content = html.fromstring(content)
+    s140s = html_content.xpath('//div[@class=\'s140\']')
+    has_changed = False
+    for s140 in s140s:
+        if (s140.text and len(s140.text.strip()) > 0 and
+            len(s140.getchildren()) > 0 and all(child.tag == 'br' for child in s140.getchildren())):
+            text = []
+            text.append(s140.text.strip())
+            for child in s140.getchildren():
+                if (child.tail and len(child.tail.strip())):
+                    text.append(child.tail.strip())
+
+            if (all(clean17regex1.match(t) for t in text) or
+                all(clean17regex2.match(t) for t in text)):
+                has_changed = has_changed or True
+                s140.text = ''
+                for child in s140.getchildren():
+                    s140.remove(child)
+                for t in text:
+                    element = html.Element('li')
+                    element.text = t
+                    s140.append(element)
+                s140.tag = 'ol'
+
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+    return content
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean16(filename, content)
+    new_content = clean17(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
