@@ -179,11 +179,87 @@ def clean12(filename, content):
         print filename
     return new_content
 
+def clean13(filename, content):
+    html_content = html.fromstring(content)
+    center_parts = html_content.xpath('//center')
+    for center_part in center_parts:
+        children = center_part.getchildren()
+        for child in children:
+            print child.tail
+    return content
+
+def clean14(filename, content):
+    html_content = html.fromstring(content)
+    s140s = html_content.xpath('//div[@class=\'s140\']')
+    for s140 in s140s:
+        children = s140.getchildren()
+        no_extra_text = not any(child.tail and child.tail.strip() for child in children)
+        no_text = s140.text and not s140.text.strip()
+        all_s12 = all(child.get('class') == 's12' for child in children)
+        if children and no_extra_text and no_text and all_s12:
+            print filename
+            parentelement = html.Element('ol', {'class': 'sx14-s140'})
+            for child in children:
+                element = html.Element('li', {'class': 'sx14-s12'})
+                element.text = child.text
+                child.drop_tree()
+                parentelement.append(element)
+            s140.addprevious(parentelement)
+            s140.drop_tree()
+            content = etree.tostring(html_content)
+    return content
+
+clean15regex1 = re.compile('^\(\d+\)')
+clean15regex2 = re.compile('^d+\.')
+clean15regex3 = re.compile('^d+\)')
+def clean15(filename, content):
+    html_content = html.fromstring(content)
+    s14s = html_content.xpath('//div[@class=\'s14\']')
+    has_changed = False
+    for s14 in s14s:
+        if (s14.tail and len(s14.tail.strip()) > 0):
+            text = []
+            text.append(s14.tail.strip())
+            next = s14.getnext()
+            to_drop = []
+            while (next is not None and next.tag == 'br' and next.tail is not None):
+                text.append(next.tail.strip())
+                to_drop.append(next)
+                next = next.getnext()
+
+            if (next is not None):
+                to_drop.append(next)
+            
+            match_bulleting = (all(clean15regex1.match(t) for t in text) 
+                or all(clean15regex2.match(t) for t in text)
+                or all(clean15regex3.match(t) for t in text))
+            if match_bulleting:
+                has_changed = has_changed or True
+                prev = s14
+                s14.tail = ''
+                for t in text:
+                    element = html.Element('div', {'class': 's14'})
+                    element.text = t
+                    prev.addnext(element)
+                    prev = element
+
+                for drop in to_drop:
+                    drop.tail = ''
+                    drop.drop_tree()
+
+        elif (not s14.tail and s14.getnext() is not None and s14.getnext().tag == 'br'):
+            has_changed = has_changed or True
+            s14.getnext().drop_tree()
+
+    if (has_changed):
+        print filename
+    return etree.tostring(html_content)
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean10(filename, content)
+    new_content = clean15(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
