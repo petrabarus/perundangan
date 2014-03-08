@@ -340,11 +340,54 @@ def clean17(filename, content):
         content = etree.tostring(html_content)
     return content
 
+clean18regex1 = re.compile('^(\d+)\.')
+clean18regex2 = re.compile('^([a-z])\.')
+def clean18(filename, content):
+    html_content = html.fromstring(content)
+    s140s = html_content.xpath('//div[@class=\'s140\']')
+    has_changed = False
+    for s140 in s140s:
+        if (s140.text and len(s140.text.strip()) > 0 and
+            len(s140.getchildren()) > 0 and 
+            all((child.tag == 'br' or (child.tag == 'div' and child.get('class') == 's12' and len(child.getchildren()) == 0))
+                for child in s140.getchildren())
+            and any(child.get('class') == 's12' for child in s140.getchildren())):
+            text = []
+            if (s140.text and len(s140.text.strip()) > 0):
+                text.append(s140.text.strip())
+            for child in s140.getchildren():
+                if child.tag == 'br':
+                    if child.tail and len(child.tail.strip()) > 0:
+                        text.append(child.tail.strip())
+                elif child.tag == 'div':
+                    if child.text and len(child.text.strip()) > 0:
+                        text.append(child.text.strip())
+                    if child.tail and len(child.tail.strip()) > 0:
+                        text.append(child.tail.strip())
+
+            if (all(clean18regex1.match(t) for t in text) or
+                all(clean18regex2.match(t) for t in text)):
+                has_changed = has_changed or True
+                s140.text = ''
+                for child in s140.getchildren():
+                    s140.remove(child)
+                for t in text:
+                    element = html.Element('li')
+                    element.text = t
+                    s140.append(element)
+                s140.tag = 'ol'
+
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+    return content
+
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean17(filename, content)
+    new_content = clean18(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
