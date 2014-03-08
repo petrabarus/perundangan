@@ -69,11 +69,54 @@ def clean6(filename, content):
         content = content.replace(text, ' ')
     return content
 
+clean7regex1 = re.compile("\b\s+|\n\s+|\s+\n|\s+\b");
+clean7regex2 = re.compile("^(Menimbang|Mengingat|Menetapkan|Memperhatikan|Mendengar|Kepada)(\s+)?:");
+def clean7(filename, content):
+    html_content = html.fromstring(content)
+    sm_parts = html_content.xpath('//div[@class=\'sm\']')
+    for sm_part in sm_parts:
+        text = clean7regex1.sub(' ', sm_part.text).strip()
+        match = clean7regex2.match(text)
+        if (match):
+            print filename
+            element = html.Element('div', {'class': 'xsm'})
+            element.text = ''
+            parent = sm_part.getparent()
+            
+            element2 = html.Element('strong')
+            element2.text = match.group(1)
+
+
+            element.append(element2)
+            ol = html.Element('ol')
+            li = html.Element('li')
+            li.text = clean7regex2.sub('', text).strip() 
+            ol.append(li)
+
+            sibling = sm_part.getnext()
+            sm_siblings = []
+            while (sibling is not None and sibling.get('class') == 'sm1'):
+                sm_siblings.append(sibling)
+                sibling = sibling.getnext()
+            for sibling in sm_siblings:
+                if (sibling.text is not None):
+                    li = html.Element('li')
+                    li.text = clean7regex1.sub(' ', sibling.text).strip()
+                    ol.append(li)
+                parent.remove(sibling)
+
+            element.append(ol)
+            sm_part.addprevious(element)
+            sm_part.drop_tree()
+
+    return etree.tostring(html_content)
+
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean6(filename, content)
+    new_content = clean7(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
