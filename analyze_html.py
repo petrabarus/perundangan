@@ -171,11 +171,19 @@ def clean11(filename, content):
             content = etree.tostring(html_content)
     return content
 
+
+clean12regex1 = re.compile('</div>(<br />)(\s+<br />)?');
+def clean12(filename, content):
+    new_content = clean12regex1.sub('</div>', content)
+    if (new_content != content):
+        print filename
+    return new_content
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean11(filename, content)
+    new_content = clean12(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
