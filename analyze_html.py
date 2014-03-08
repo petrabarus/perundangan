@@ -255,11 +255,63 @@ def clean15(filename, content):
         print filename
     return etree.tostring(html_content)
 
+
+clean16regex1 = re.compile('^\(\d+\)')
+clean16regex2 = re.compile('^d+\.')
+clean16regex3 = re.compile('^[a-z]\.')
+clean16regex4 = re.compile('^[a-z]\)')
+clean16regex5 = re.compile('^d+\)')
+def clean16(filename, content):
+    html_content = html.fromstring(content)
+    s12s = html_content.xpath('//div[@class=\'s12\']')
+    has_changed = False
+    for s12 in s12s:
+        if (s12.tail and len(s12.tail.strip()) > 0):
+            text = []
+            text.append(s12.tail.strip())
+            next = s12.getnext()
+            to_drop = []
+            while (next is not None and next.tag == 'br' and next.tail is not None):
+                text.append(next.tail.strip())
+                to_drop.append(next)
+                next = next.getnext()
+
+            if (next is not None):
+                to_drop.append(next)
+            
+            match_bulleting = (all(clean16regex1.match(t) for t in text) 
+                or all(clean16regex2.match(t) for t in text)
+                or all(clean16regex3.match(t) for t in text)
+                or all(clean16regex4.match(t) for t in text)
+                or all(clean16regex5.match(t) for t in text)
+                )
+            if match_bulleting:
+                has_changed = has_changed or True
+                prev = s12
+                s12.tail = ''
+                for t in text:
+                    element = html.Element('div', {'class': 's12'})
+                    element.text = t
+                    prev.addnext(element)
+                    prev = element
+
+                for drop in to_drop:
+                    drop.tail = ''
+                    drop.drop_tree()
+
+        elif (not s12.tail and s12.getnext() is not None and s12.getnext().tag == 'br'):
+            has_changed = has_changed or True
+            s12.getnext().drop_tree()
+
+    if (has_changed):
+        print filename
+    return etree.tostring(html_content)
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean15(filename, content)
+    new_content = clean16(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
