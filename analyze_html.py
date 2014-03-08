@@ -111,12 +111,23 @@ def clean7(filename, content):
 
     return etree.tostring(html_content)
 
+clean8regex1 = re.compile('(<br>\s+)+</center>');
+clean8regex2 = re.compile('<center>(\s+<br>)+');
+clean8regex3 = re.compile('</center>((\s+)?<br>)+');
+def clean8(filename, content):
+    new_content = clean8regex1.sub('</center>', content)
+    new_content = clean8regex2.sub('<center>', new_content)
+    new_content = clean8regex3.sub('</center>', new_content)
+    if (new_content != content):
+        print filename
+    return new_content
+
 
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean7(filename, content)
+    new_content = clean8(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
