@@ -156,11 +156,26 @@ def clean10(filename, content):
                 content = new_content
     return content    
 
+def clean11(filename, content):
+    html_content = html.fromstring(content)
+    h4_parts = html_content.xpath('//h4')
+    for h4_part in h4_parts:
+        if (h4_part.tail and len(h4_part.tail.strip()) > 0 and 
+            h4_part.getnext() is not None and h4_part.getnext().tag == 'br'):
+            print filename
+            text = h4_part.tail.strip()
+            element = html.Element('div', {'class': 'sx11'})
+            element.text = text
+            h4_part.tail = ''
+            h4_part.addnext(element)
+            content = etree.tostring(html_content)
+    return content
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean10(filename, content)
+    new_content = clean11(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
