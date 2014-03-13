@@ -524,20 +524,51 @@ def clean25(filename, content):
         content = etree.tostring(html_content)            
     return content
 
+"""
+Detect tail that begins with bullet
+"""
+clean26regex1 = re.compile('^[a-z]{1}\.')
 def clean26(filename, content):
     html_content = html.fromstring(content)
     s14s = html_content.xpath('//div[@class=\'s14\']')
+    has_changed = False
+    for s14 in s14s:
+        if (s14.text and s14.text.strip() and s14.text.strip()[-1] == ':'
+            and s14.tail is not None and len(s14.tail.strip()) > 0 and 
+            (s14.getchildren() is None or len(s14.getchildren()) == 0)
+            and s14.getnext() is not None):
+            if (clean26regex1.match(s14.tail.strip())):
+                has_changed = has_changed or True
+                element = html.Element('div', {'class': 's12'})
+                element.text = s14.tail.strip()
+                s14.tail = ''
+                s14.addnext(element)
+
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+
+    return content
+
+
+def clean27(filename, content):
+    html_content = html.fromstring(content)
+    s14s = html_content.xpath('//div[@class=\'s14\']')
+    has_changed = False
     for s14 in s14s:
         if (s14.getchildren() and (s14.tail is None or len(s14.tail.strip()) == 0) and all(child.tag == 'br' for child in s14.getchildren())):
+            has_changed = has_changed or True
             print etree.tostring(s14)
 
+def clean28(filename, content):
+    html_content = html.fromstring(content)
 
 
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean25(filename, content)
+    new_content = clean21(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
