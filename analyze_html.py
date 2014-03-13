@@ -510,11 +510,34 @@ def clean24(filename, content):
         content = etree.tostring(html_content)
     return content
 
+def clean25(filename, content):
+    html_content = html.fromstring(content)
+    sx11s = html_content.xpath('//div[@class=\'sx11\']')
+    has_changed = True
+    for sx11 in sx11s:
+        if (sx11.getprevious() is not None and (sx11.getprevious().tag == 'h2' or sx11.getprevious().tag == 'h4')):
+            sx11.set('class', 's14')
+            has_changed = has_changed or True
+    
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)            
+    return content
+
+def clean26(filename, content):
+    html_content = html.fromstring(content)
+    s14s = html_content.xpath('//div[@class=\'s14\']')
+    for s14 in s14s:
+        if (s14.getchildren() and (s14.tail is None or len(s14.tail.strip()) == 0) and all(child.tag == 'br' for child in s14.getchildren())):
+            print etree.tostring(s14)
+
+
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean24(filename, content)
+    new_content = clean25(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
