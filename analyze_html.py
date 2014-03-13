@@ -382,12 +382,33 @@ def clean18(filename, content):
         content = etree.tostring(html_content)
     return content
 
+"""
+Finding all element with class 'sx11' from previous parsing and check whether
+it's a part of list of s14.
+"""
+clean19regex1 = re.compile('^\(\d+')
+clean19regex2 = re.compile('\d+\.')
+def clean19(filename, content):
+    html_content = html.fromstring(content)
+    sx11s = html_content.xpath('//div[@class=\'sx11\']')
+    has_changed = False
+    for sx11 in sx11s:
+        if (sx11.text and 
+            (clean19regex1.match(sx11.text.strip()) or clean19regex2.match(sx11.text.strip()))
+            and ((sx11.getprevious() is not None and sx11.getprevious().get('class') == 's14') or 
+                ((sx11.getnext() is not None and sx11.getnext().get('class') == 's14')))):
+            has_changed = has_changed or True
+            sx11.set('class', 's14')
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+    return content
 
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean18(filename, content)
+    new_content = clean19(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
