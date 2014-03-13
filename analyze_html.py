@@ -494,11 +494,27 @@ def clean23(filename, content):
         content = etree.tostring(html_content)
     return content
 
+def clean24(filename, content):
+    html_content = html.fromstring(content)
+    sx11s = html_content.xpath('//div[@class=\'sx11\']')
+    has_changed = False
+    for sx11 in sx11s:
+        if (sx11.getprevious() is not None and (sx11.getprevious().tag == 'h2' or sx11.getprevious().tag == 'h4') and
+            sx11.getnext() is not None and (sx11.getnext().tag == 'h2' or sx11.getnext().tag == 'h4') and
+            not sx11.getchildren()):
+            sx11.set('class', 's14')
+            has_changed = has_changed or True
+
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+    return content
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean23(filename, content)
+    new_content = clean24(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
