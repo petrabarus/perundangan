@@ -404,11 +404,44 @@ def clean19(filename, content):
         content = etree.tostring(html_content)
     return content
 
+"""
+Cleaning up tail from sx11 and change the sx11 to s14 if it's a list with (\d+) bullet
+"""
+clean20regex1 = re.compile('^\(\d+\)')
+def clean20(filename, content):
+    html_content = html.fromstring(content)
+    sx11s = html_content.xpath('//div[@class=\'sx11\']')
+    has_changed = False
+    for sx11 in sx11s:
+        if (sx11.tail and sx11.tail.strip() and
+            clean20regex1.match(sx11.text.strip()) and
+            clean20regex1.match(sx11.tail.strip())):
+            element = html.Element('div', {'classs': 's14'})
+            element.text = sx11.tail.strip()
+            sx11.set('class', 's14')
+            sx11.tail = ''
+            sx11.addnext(element)
+            has_changed = has_changed or True
+
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+    return content
+
+"""
+Remove tailing BR
+"""
+def clean21(filename, content):
+    new_content = content.replace('</div><br />', '</div>')
+    if (new_content != content):
+        print filename
+    return new_content
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean19(filename, content)
+    new_content = clean21(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
