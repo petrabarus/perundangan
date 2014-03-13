@@ -462,12 +462,43 @@ def clean22(filename, content):
         content = etree.tostring(html_content)
     return content
 
+clean23regex1 = re.compile('^(BAB|Bab|Bagian|Paragraf)')
+def clean23(filename, content):
+    html_content = html.fromstring(content)
+    center_parts = html_content.xpath('//center')
+    has_changed = False
+    for center_part in center_parts:
+        if (center_part.getchildren() is not None and
+            len(center_part.getchildren()) == 3 and
+            all((child.tag == 'br' and child.tail and len(child.tail.strip()) > 0) for child in center_part.getchildren())):
+            children = center_part.getchildren()
+            text1 = center_part.text.strip()
+            text2 = children[0].tail.strip()
+            text3 = children[1].tail.strip()
+            text4 = children[2].tail.strip()
+
+            match1 = clean23regex1.match(text1)
+            match2 = clean23regex1.match(text3)
+            if(match1 and match2):
+                has_changed = has_changed or True
+                element1 = html.Element('h2', {'class': match1.group(1).lower()})
+                element1.text = text1 + ': ' + text2
+                element2 = html.Element('h2', {'class': match2.group(1).lower()})
+                element2.text = text3 + ': ' + text4
+                center_part.addprevious(element1)
+                center_part.addprevious(element2)
+                center_part.drop_tree()
+
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+    return content
 
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean21(filename, content)
+    new_content = clean23(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
