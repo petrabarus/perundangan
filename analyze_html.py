@@ -437,6 +437,32 @@ def clean21(filename, content):
         print filename
     return new_content
 
+"""
+Cleaning up tail from s14 and put the tail to s14 if it's a list with (\d+) bullet
+"""
+clean22regex1 = re.compile('^\(\d+\)')
+def clean22(filename, content):
+    html_content = html.fromstring(content)
+    s14s = html_content.xpath('//div[@class=\'s14\']')
+    has_changed = False
+    for s14 in s14s:
+        if (s14.tail and s14.tail.strip() and
+            clean20regex1.match(s14.text.strip()) and
+            clean20regex1.match(s14.tail.strip())):
+            #print s14.text.strip()
+            #print s14.tail.strip()
+            element = html.Element('div', {'classs': 's14'})
+            element.text = s14.tail.strip()
+            s14.tail = ''
+            s14.addnext(element)
+            has_changed = has_changed or True
+
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+    return content
+
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
