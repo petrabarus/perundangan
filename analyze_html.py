@@ -686,11 +686,48 @@ def clean31(filename, content):
         content = etree.tostring(html_content)
     return content
 
+"""
+Breaking the "Paragraf" heading
+"""
+clean32regex1 = re.compile('^(PASAL|Pasal|Paragraf|ARTICLE|Bab)')
+def clean32(filename, content):
+    html_content = html.fromstring(content)
+    centers = html_content.xpath('//center')
+    has_changed = False
+    for center in centers:
+        if (center.getchildren() and center.text and len(center.getchildren()) == 1 
+            and center.getchildren()[0].tag == 'br'
+            and center.getchildren()[0].tail):
+            text1 = center.text.strip()
+            text2 = center.getchildren()[0].tail.strip()
+            match = clean32regex1.match(text1)
+            if (match):
+                c = match.group(1).lower()
+                if c == 'pasal':
+                    element = html.Element('h4')
+                else:
+                    element = html.Element('h2', {'class': c})
+                num = html.Element('span', {'class': 'num'})
+                num.text = text1
+                heading = html.Element('span', {'class': 'title'})
+                heading.text = text2
+                element.append(num)
+                element.append(heading)
+                center.addnext(element)
+                center.drop_tree()
+                has_changed = has_changed or True
+
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+
+    return content
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean31(filename, content)
+    new_content = clean32(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
