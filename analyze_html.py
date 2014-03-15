@@ -579,15 +579,34 @@ def clean27(filename, content):
         content = etree.tostring(html_content)
     return content
 
+
+clean28regex1 = re.compile('^\d+\.')
 def clean28(filename, content):
     html_content = html.fromstring(content)
-    s14s = html_content.xpath('//div[@class=\'s14\']')
+    s12s = html_content.xpath('//div[@class=\'s12\']')
     has_changed = False
-    for s14 in s14s:
-        if (s14.getchildren() and (s14.tail is None or len(s14.tail.strip()) == 0) and all(child.tag == 'br' for child in s14.getchildren())):
+    for s12 in s12s:
+        if ((s12.getchildren() is None or len(s12.getchildren()) == 0) and
+            s12.tail is not None and len(s12.tail.strip()) > 0 and clean28regex1.match(s12.tail.strip())):
             has_changed = has_changed or True
-            print etree.tostring(s14)
+            element = html.Element('div', {'class' : 's12'})
+            element.text = s12.tail.strip()
+            s12.tail = ''
+            s12.addnext(element)
+            while (element.getnext() is not None and element.getnext().tag == 'br' and 
+                element.getnext().tail is not None and len(element.getnext().tail.strip()) > 0 and
+                clean28regex1.match(element.getnext().tail.strip())):
+                new_element = html.Element('div', {'class' : 's12'})
+                new_element.text = element.getnext().tail.strip()
+                element.getnext().tail = ''
+                element.getnext().drop_tree()
+                element.addnext(new_element)
+                element = new_element
 
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+    return content
 
 
 def processfile(filename):
