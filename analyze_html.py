@@ -608,12 +608,34 @@ def clean28(filename, content):
         content = etree.tostring(html_content)
     return content
 
+"""
+Putting amandement to blockquotes
+"""
+def clean29(filename, content):
+    html_content = html.fromstring(content)
+    s120s = html_content.xpath('//div[@class=\'s120\']')
+    has_changed = False
+    for s120 in s120s:
+        if (s120.getchildren() and len(s120.getchildren()) > 1 and (s120.getchildren()[0].tag == 'h4' or s120.getchildren()[0].tag == 'center')):
+            s120.tag = 'blockquote'
+            first = s120.getchildren()[0]
+            last = s120.getchildren()[-1]
+            if (first.tag == 'center' and len(first.text.strip()) == 1
+                and last.text and len(last.text.strip()) > 0 and last.text.strip()[-1] == first.text.strip()):
+                last.text = last.text.strip()[:-1]
+                first.drop_tree()
+            has_changed = has_changed or True
+
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+    return content        
 
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean21(filename, content)
+    new_content = clean29(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
