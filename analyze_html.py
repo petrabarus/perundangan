@@ -559,7 +559,7 @@ def clean26(filename, content):
     return content
 
 
-clean27regex1 = re.compile('^[a-z]{1}\.')
+clean27regex1 = re.compile('^[a-z]{1,2}\.')
 def clean27(filename, content):
     html_content = html.fromstring(content)
     s12s = html_content.xpath('//div[@class=\'s12\']')
@@ -644,7 +644,7 @@ def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean12(filename, content)
+    new_content = clean28(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
