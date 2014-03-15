@@ -123,7 +123,7 @@ def clean8(filename, content):
     return new_content
 
 #Parse string PASAL XX in <center></center> and replace it with h4
-clean9regex1 = re.compile('Pasal (\d+)(\s+)</center>')
+clean9regex1 = re.compile('Pasal (\w+)(\s+)</center>')
 def clean9(filename, content):
     print filename
     content = clean9regex1.sub('</center><h4>Pasal \g<1></h4>', content)
@@ -636,7 +636,7 @@ def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean29(filename, content)
+    new_content = clean9(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
