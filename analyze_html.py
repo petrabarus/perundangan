@@ -135,6 +135,7 @@ clean10regex2 = re.compile('^BAB');
 def clean10(filename, content):
     html_content = html.fromstring(content)
     center_parts = html_content.xpath('//center')
+    has_changed = False
     for part in center_parts:
         child = part.getchildren()
         if (len(child) == 1 and child[0].tag == 'br' and
@@ -145,30 +146,37 @@ def clean10(filename, content):
                 element.text = text
                 part.addprevious(element)
                 part.drop_tree()
+                has_changed = has_changed or True
             elif (clean10regex2.match(text)):
                 element = html.Element('h2', {'class': 'bab'})
                 element.text = text
                 part.addprevious(element)
                 part.drop_tree()
-            new_content = etree.tostring(html_content)
-            if (new_content != content):
-                print filename
-                content = new_content
+                has_changed = has_changed or True
+            
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
     return content    
 
 def clean11(filename, content):
     html_content = html.fromstring(content)
     h4_parts = html_content.xpath('//h4')
+    has_changed = False
     for h4_part in h4_parts:
         if (h4_part.tail and len(h4_part.tail.strip()) > 0 and 
             h4_part.getnext() is not None and h4_part.getnext().tag == 'br'):
-            print filename
+            has_changed = has_changed or True
             text = h4_part.tail.strip()
-            element = html.Element('div', {'class': 'sx11'})
+            element = html.Element('div', {'class': 's14'})
             element.text = text
             h4_part.tail = ''
             h4_part.addnext(element)
-            content = etree.tostring(html_content)
+    
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+
     return content
 
 
@@ -636,7 +644,7 @@ def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean9(filename, content)
+    new_content = clean12(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
