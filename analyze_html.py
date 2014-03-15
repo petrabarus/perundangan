@@ -640,11 +640,33 @@ def clean29(filename, content):
         content = etree.tostring(html_content)
     return content        
 
+"""
+Group a closing statement
+"""
+clean30regex1 = re.compile('^Agar setiap orang mengetahuinya')
+def clean30(filename, content):
+    html_content = html.fromstring(content)
+    s14s = html_content.xpath('//div[@class=\'s14\']')
+    has_changed = False
+    for s14 in s14s:
+        if s14.tail is not None and len(s14.tail.strip()) != 0:
+            if (clean30regex1.match(s14.tail.strip())):
+                has_changed = has_changed or True
+                text = s14.tail.strip()
+                s14.tail = ''
+                element = html.Element('div', {'class':'s14x'})
+                element.text = text
+                s14.addnext(element)
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+    return content
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean28(filename, content)
+    new_content = clean12(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
