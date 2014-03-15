@@ -727,7 +727,7 @@ def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean32(filename, content)
+    new_content = clean12(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
