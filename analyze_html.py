@@ -662,11 +662,35 @@ def clean30(filename, content):
         content = etree.tostring(html_content)
     return content
 
+"""
+Dividing h2 to two subchildren, num and heading
+"""
+def clean31(filename, content):
+    html_content = html.fromstring(content)
+    h2s = html_content.xpath('//h2')
+    has_changed = False
+    for h2 in h2s:
+        text = h2.text.strip().split(':')
+        if len(text) == 2:
+            h2.text = ''
+            elmt1 = html.Element('span', {'class': 'num'})
+            elmt1.text = text[0]
+            elmt2 = html.Element('span', {'class': 'title'})
+            elmt2.text = text[1]
+            h2.append(elmt1)
+            h2.append(elmt2)
+            has_changed = has_changed or True
+
+    if has_changed:
+        print filename
+        content = etree.tostring(html_content)
+    return content
+
 def processfile(filename):
     fi = open(filename, "rb")
     content = fi.read()
     fi.close()
-    new_content = clean12(filename, content)
+    new_content = clean31(filename, content)
     fo = open(filename, "w")
     fo.write(new_content)
     fo.close()
